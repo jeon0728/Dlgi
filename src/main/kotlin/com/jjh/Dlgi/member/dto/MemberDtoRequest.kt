@@ -62,4 +62,5 @@ data class MemberDtoRequest (
 
     private fun String.toLocalDate(): LocalDate =
         LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
 }
