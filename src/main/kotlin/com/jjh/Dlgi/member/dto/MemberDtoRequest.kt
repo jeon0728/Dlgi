@@ -38,7 +38,7 @@ data class MemberDtoRequest (
 
     @field:NotBlank
     @JsonProperty("gender")
-    @field:ValidEnum(enumClass = Gender::class, message = "제대로 입력해라 으이? (MAN or WOMAN)")
+    @field:ValidEnum(message = "제대로 입력해라 으이? (MAN or WOMAN)", enumClass = Gender::class)
     private val _gender: String?,
 
     @field:NotBlank

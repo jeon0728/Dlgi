@@ -10,6 +10,9 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME) //어노테이션을 컴파일된 클래스 파일에 저장할 것인지 런타임에 반영할 것인지 정의
 @MustBeDocumented //API의 일부분으로 문서화하기 위해 사용.
 @Constraint(validatedBy = [ValidEnumValidator::class]) //[] 안에 작성한 validator 넣어주기
+// validatedBy 값으로 아래에서 정의한
+// validator를 전달해주면 Spring Boot는 우리가 API를 호출할 때
+// 전달한 값을 가져오면서 validation을 수행합니다.
 annotation class ValidEnum(
     val message: String = "Invalid enum value",
     // groups, payload는 default 값
