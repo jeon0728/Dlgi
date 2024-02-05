@@ -3,6 +3,7 @@ package com.jjh.Dlgi.member.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.jjh.Dlgi.common.annotaion.ValidEnum
 import com.jjh.Dlgi.common.status.Gender
+import com.jjh.Dlgi.member.entity.Member
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -62,5 +63,7 @@ data class MemberDtoRequest (
 
     private fun String.toLocalDate(): LocalDate =
         LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+    fun toEntity() : Member = Member(id, loginId, password, name, birthDate, gender, email)
 
 }
