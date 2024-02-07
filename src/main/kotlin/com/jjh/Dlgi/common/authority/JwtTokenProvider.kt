@@ -10,10 +10,11 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.stereotype.Component
 import java.util.*
 
 const val EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 60 * 12
-
+@Component
 class JwtTokenProvider {
     @Value("\${jwt.secret}") // yml 파일에 있는 프로퍼티 바인딩
     lateinit var secretKey: String

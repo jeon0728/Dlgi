@@ -30,7 +30,9 @@ class SecurityConfig(
             .addFilterBefore(
                 JwtAuthenticationFilter(jwtTokenProvider), //A
                 UsernamePasswordAuthenticationFilter::class.java //B
-            ) // B filter 실행 전에 A filter 실행, A 통과되면 B 실행하지 않음
+            ) // B filter 실행 전에 A filter 실행
+              // JwtAuthenticationFilter 내부 코드를 보면 성공한 경우 Authentication 객체를 생성하여 SecurityContextHolder에 저장한다.
+              // 따라서 이후 실행되는 UsernamePasswordAuthenticationFilter 는 이미 인증이 완료된 상태이므로 실행되지 않는게 아니라 통과하는것이다.
         return http.build()
     }
     @Bean
