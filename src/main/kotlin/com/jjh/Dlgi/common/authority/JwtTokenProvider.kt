@@ -10,10 +10,11 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.stereotype.Component
 import java.util.*
 
 const val EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 60 * 12
-
+@Component
 class JwtTokenProvider {
     @Value("\${jwt.secret}") // yml 파일에 있는 프로퍼티 바인딩
     lateinit var secretKey: String
@@ -34,6 +35,9 @@ class JwtTokenProvider {
         // 권한들을 ',' 로 이어서 문자열로 생성한다음 authorities 에 저장
         val authorities: String = authentication
             .authorities
+            // Authentication 에 있는 권한들을 joinToString 으로 묶고
+            // transform 이라는 joinToString 의 인자로
+            // interface 인 GrantedAuthority 의  함수 getAuthority 를 리플랙션을 이용하여 참조 후 변수 authorities 에 반환
             .joinToString(",", transform = GrantedAuthority::getAuthority)
         val now = Date()
         // 만료시간 지정
@@ -58,16 +62,23 @@ class JwtTokenProvider {
         val claims: Claims = getClaims(token)
         val auth = claims["auth"] ?: throw RuntimeException("잘못된 토큰 입니다.")
 
-        //권한 정보 추출
+        // 권한 정보 추출
+        // 순회가능한 Collection 타입으로 authorities 변수 선언
+        // token 에서 추출한 claims 안에 있는 auth 를 as로 이용하여 String 타입으로 명시
+        // split 으로 배열 생성 후 해당 배열들의 원소(it) 를 SimpleGrantedAuthority 를 태워서 map 으로 생성 후 반환
         val authorities: Collection<GrantedAuthority> = (auth as String)
             .split(",")
             .map { SimpleGrantedAuthority(it) }
+        // claims 안에 들어있는 정보와 위에서 추출한 권한 정보를 User 객체로 만들어
+        // UserDetails 타입으로 선언한 principal이라는 변수 안에 저장
         val principal: UserDetails = User(claims.subject, "", authorities)
+        // 사용자의 자격증명을 기반으로 인증객체(UsernamePasswordAuthenticationToken) 생성 후 반환
         return UsernamePasswordAuthenticationToken(principal, "", authorities)
     }
 
     /**
      * token 검증
+     * try/catch 문을 사용하여 예외처리
      */
     fun validateToken(token: String): Boolean {
         try {
@@ -87,10 +98,12 @@ class JwtTokenProvider {
         return false
     }
 
-    private fun getClaims(token: String): Claims =
-        Jwts.parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(token)
-            .body
+    private fun getClaims(token: String): Claims {
+        var jwtParser = Jwts.parserBuilder() // JwtParserBuilder 인스턴스 생성
+            .setSigningKey(key) // 키 지정
+            .build() // JwtParser 반환
+        var parseClaimsJws = jwtParser.parseClaimsJws(token).body // 생성된 jwtParser를 이용해 토큰 파싱 후 오리지널 Signed Jwt 반환
+        return parseClaimsJws
+    }
+
 }
