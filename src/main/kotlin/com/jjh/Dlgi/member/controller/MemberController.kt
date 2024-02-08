@@ -1,6 +1,8 @@
 package com.jjh.Dlgi.member.controller
 
+import com.jjh.Dlgi.common.authority.TokenInfo
 import com.jjh.Dlgi.common.dto.BaseResponse
+import com.jjh.Dlgi.member.dto.LoginDto
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.service.MemberService
 import jakarta.validation.Valid
@@ -27,6 +29,15 @@ class MemberController(
         // signUp 을 성공적으로 완료시 "회원가입이 성공적으로 완료되었습니다." 라는 메세지를 반환하가 때문에 message 만 넘겨준다.
         // 굳이 메세지를 넘겨주지 않는다면 return BaseResponse() 로 코드를 수정해도 무방하다.
         return BaseResponse(message = resultMsg)
+    }
+
+    /**
+     * 로그인
+     */
+    @PostMapping("/login")
+    fun login(@RequestBody @Valid loginDto: LoginDto): BaseResponse<TokenInfo> {
+        val tokenInfo = memberService.login(loginDto)
+        return BaseResponse(data = tokenInfo)
     }
 }
 
