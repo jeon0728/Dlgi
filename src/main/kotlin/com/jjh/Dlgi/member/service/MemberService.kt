@@ -6,11 +6,13 @@ import com.jjh.Dlgi.common.exception.InvalidInputException
 import com.jjh.Dlgi.common.status.ROLE
 import com.jjh.Dlgi.member.dto.LoginDto
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
+import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import com.jjh.Dlgi.member.entity.Member
 import com.jjh.Dlgi.member.entity.MemberRole
 import com.jjh.Dlgi.member.repository.MemberRepository
 import com.jjh.Dlgi.member.repository.MemberRoleRepository
 import jakarta.transaction.Transactional
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.stereotype.Service
@@ -36,7 +38,7 @@ class MemberService(
         member = memberDtoRequest.toEntity()
         memberRepository.save(member)
 
-        val memberRole: MemberRole = MemberRole(null, ROLE.MEMBER, member)
+        val memberRole: MemberRole = MemberRole(null, ROLE.JUNHO, member)
         memberRoleRepository.save(memberRole)
         return "회원가입이 완료 되었습니다."
     }
@@ -48,5 +50,10 @@ class MemberService(
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
         val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
         return jwtTokenProvider.createToken(authentication)
+    }
+
+    fun searchMyInfo(id: Long): MemberDtoResponse {
+        val member: Member = memberRepository.findByIdOrNull(id) ?: throw InvalidInputException("id", "회원번호(${id}가 존재하지 않는 유저입니다.)")
+        return member.toDto()
     }
 }

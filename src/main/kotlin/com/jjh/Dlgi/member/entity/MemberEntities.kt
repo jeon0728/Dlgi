@@ -2,8 +2,10 @@ package com.jjh.Dlgi.member.entity
 
 import com.jjh.Dlgi.common.status.Gender
 import com.jjh.Dlgi.common.status.ROLE
+import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import jakarta.persistence.*
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(name = "uk_member_login_id", columnNames = ["loginId"])])
@@ -37,6 +39,12 @@ class Member (
     // FetchType.LAZY 은 데이터가 필요한 시점에 사용하기 위하여 연관된 객체에 프록시 객체를 넣어둔다.
     // 실제 데이터가 필요한 순간이 되어서야 데이터베이스를 조회해서 프록시 객체를 초기화함.
     val memberRole: List<MemberRole>? = null
+
+    private fun LocalDate.formatDate(): String {
+        return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+    }
+
+    fun toDto(): MemberDtoResponse = MemberDtoResponse(id!!, loginId, name, birthDate.formatDate(), gender.desc, email)
 }
 @Entity
 class MemberRole (
