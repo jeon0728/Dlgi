@@ -1,5 +1,6 @@
 package com.jjh.Dlgi.common.authority
 
+import com.jjh.Dlgi.common.dto.CustomUser
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -47,6 +48,7 @@ class JwtTokenProvider {
         val accessToken = Jwts.builder()
             .setSubject(authentication.name) // 제목
             .claim("auth", authorities) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
+            .claim("userId", (authentication.principal as CustomUser).userId) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
             .setIssuedAt(now) // 발행시간
             .setExpiration(accessExpiration) // 유효시간
             .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
@@ -61,6 +63,7 @@ class JwtTokenProvider {
     fun getAuthentication(token: String): Authentication {
         val claims: Claims = getClaims(token)
         val auth = claims["auth"] ?: throw RuntimeException("잘못된 토큰 입니다.")
+        val userId = claims["userId"] ?: throw RuntimeException("잘못된 토큰 입니다.")
 
         // 권한 정보 추출
         // 순회가능한 Collection 타입으로 authorities 변수 선언
@@ -69,9 +72,10 @@ class JwtTokenProvider {
         val authorities: Collection<GrantedAuthority> = (auth as String)
             .split(",")
             .map { SimpleGrantedAuthority(it) }
-        // claims 안에 들어있는 정보와 위에서 추출한 권한 정보를 User 객체로 만들어
+
+        // claims 안에 들어있는 정보(userId, auth)에서 auth를 이용하여 추출한 권한 정보를 CustomUser 객체로 만들어
         // UserDetails 타입으로 선언한 principal이라는 변수 안에 저장
-        val principal: UserDetails = User(claims.subject, "", authorities)
+        val principal: UserDetails = CustomUser(userId.toString().toLong(), claims.subject, "", authorities)
         // 사용자의 자격증명을 기반으로 인증객체(UsernamePasswordAuthenticationToken) 생성 후 반환
         return UsernamePasswordAuthenticationToken(principal, "", authorities)
     }

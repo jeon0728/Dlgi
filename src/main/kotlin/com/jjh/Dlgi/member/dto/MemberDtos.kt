@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class MemberDtoRequest (
-    val id: Long?,
+    var id: Long?,
 
     @field:NotBlank //빈값 허용하지 않는 어노테이션
     @JsonProperty("loginId") //json 요청 값과 매핑

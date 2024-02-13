@@ -2,11 +2,13 @@ package com.jjh.Dlgi.member.controller
 
 import com.jjh.Dlgi.common.authority.TokenInfo
 import com.jjh.Dlgi.common.dto.BaseResponse
+import com.jjh.Dlgi.common.dto.CustomUser
 import com.jjh.Dlgi.member.dto.LoginDto
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import com.jjh.Dlgi.member.service.MemberService
 import jakarta.validation.Valid
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/api/member")
@@ -41,10 +43,29 @@ class MemberController(
     /**
      * 내 정보 보기
      */
-    @GetMapping("/info/{id}")
-    fun searchMyInfo(@PathVariable id: Long): BaseResponse<MemberDtoResponse> {
-        val response = memberService.searchMyInfo(id)
+    @GetMapping("/info")
+    fun searchMyInfo(): BaseResponse<MemberDtoResponse> {
+        // SecurityContextHolder.getContext() 안에 들어있는 CustomUser 정보에서 UserId 를 꺼내서 조회
+        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).userId
+        val response = memberService.searchMyInfo(userId)
         return BaseResponse(data = response)
+    }
+
+    /**
+     * 내 정보 수정
+     */
+    @PutMapping("/info")
+    fun saveMyInfo(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
+        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).userId
+        memberDtoRequest.id = userId
+        val resultMsg: String = memberService.saveMyInfo(memberDtoRequest)
+        return BaseResponse(message = resultMsg)
+    }
+
+    @PostMapping("/update")
+    fun updateMyName(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
+        val resultMsg: String = memberService.updateMyName(memberDtoRequest)
+        return BaseResponse(message = resultMsg)
     }
 }
 

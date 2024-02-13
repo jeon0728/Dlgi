@@ -20,7 +20,8 @@ class JwtAuthenticationFilter(
             // SecurityContextHolder 의 getContext 에 토큰 정보 저장
             SecurityContextHolder.getContext().authentication = authentication
         }
-        //필터 적용
+        // 체인에 등록된 다음 필터 적용
+        // 다음 필터가 없으면 종료
         chain?.doFilter(request, response)
     }
 

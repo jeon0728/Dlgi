@@ -52,8 +52,28 @@ class MemberService(
         return jwtTokenProvider.createToken(authentication)
     }
 
+    /**
+     * 정보 조회
+     */
     fun searchMyInfo(id: Long): MemberDtoResponse {
         val member: Member = memberRepository.findByIdOrNull(id) ?: throw InvalidInputException("id", "회원번호(${id}가 존재하지 않는 유저입니다.)")
         return member.toDto()
+    }
+
+    /**
+     * 정보 수정
+     */
+    fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
+        val member: Member = memberDtoRequest.toEntity()
+        memberRepository.save(member)
+        return "수정이 완료되었습니다."
+    }
+
+    fun updateMyName(memberDtoRequest: MemberDtoRequest): String {
+        val member: Member = memberDtoRequest.toEntity()
+        val resultRow = memberRepository.updateUserName(member.name, (member.id).toString().toLong())
+        var resultMsg = "수정이 완료되었습니다."
+        if (resultRow < 0) resultMsg = "수정이 완료되지 못했습니다."
+        return resultMsg
     }
 }
