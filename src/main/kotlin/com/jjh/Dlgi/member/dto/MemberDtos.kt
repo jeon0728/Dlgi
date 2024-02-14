@@ -83,6 +83,45 @@ data class LoginDto(
         get() = _password!!
 }
 
+data class UpdateDto(
+    val id: Long?,
+
+    @field:NotBlank
+    @JsonProperty("name")
+    private val _name: String?,
+
+    @field:NotBlank
+    @JsonProperty("birthDate")
+    @field:Pattern( //정규식 패턴 입력
+        regexp = "^([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))$",
+        message = "날짜형식(YYYY-MM-DD)을 확인해주세요"
+    )
+    private val _birthDate: String?,
+
+    @field:NotBlank
+    @JsonProperty("gender")
+    @field:ValidEnum(message = "제대로 입력해라 으이? (MAN or WOMAN)", enumClass = Gender::class)
+    private val _gender: String?,
+
+    @field:NotBlank
+    @JsonProperty("email")
+    @field:Email
+    private val _email: String?,
+) {
+    val name: String
+        get() = _name!!
+    val birthDate: LocalDate
+        get() = _birthDate!!.toLocalDate() //확장함수를 사용하여 원하는 포맷의 LocalDate 타입으로 형변환
+    val gender: Gender
+        get() = Gender.valueOf(_gender!!) //Gender라는 enum class 타입으로 형변환
+    val email: String
+        get() = _email!!
+    private fun String.toLocalDate(): LocalDate =
+        LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+    //fun toEntity() : Member = Member(name, birthDate, gender, email)
+}
+
 data class MemberDtoResponse(
     val id: Long,
     val loginId: String,

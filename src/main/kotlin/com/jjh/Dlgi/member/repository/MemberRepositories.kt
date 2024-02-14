@@ -11,9 +11,13 @@ interface MemberRepository: JpaRepository<Member, Long> {
 
     @Modifying
     @Query("UPDATE Member " +
-            "SET name = :name " +
-            "WHERE id = :id")
-    fun updateUserName(name: String, id: Long): Int
+            "SET " +
+            "name = :name, " +
+            "birth_date = :birthDate, " +
+            "gender = :gender, " +
+            "email = :email " +
+            "WHERE id = :id", nativeQuery = true)
+    fun updateUserInfo(name: String, birthDate: String, gender: String, email:String, id: Long): Int
 }
 
 interface MemberRoleRepository: JpaRepository<MemberRole, Long>

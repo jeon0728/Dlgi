@@ -21,7 +21,7 @@ class Member (
     val password: String,
 
     @Column(nullable = false, length = 10)
-    val name: String,
+    var name: String,
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE) //날짜만 입력가능하게 하는 어노테이션

@@ -7,6 +7,7 @@ import com.jjh.Dlgi.common.status.ROLE
 import com.jjh.Dlgi.member.dto.LoginDto
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.dto.MemberDtoResponse
+import com.jjh.Dlgi.member.dto.UpdateDto
 import com.jjh.Dlgi.member.entity.Member
 import com.jjh.Dlgi.member.entity.MemberRole
 import com.jjh.Dlgi.member.repository.MemberRepository
@@ -64,16 +65,21 @@ class MemberService(
      * 정보 수정
      */
     fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
-        val member: Member = memberDtoRequest.toEntity()
+        //val member: Member = memberDtoRequest.toEntity()
+        val member: Member = memberRepository.findByIdOrNull(memberDtoRequest.id.toString().toLong()) ?: throw InvalidInputException("id", "회원번호(${memberDtoRequest.id}가 존재하지 않는 유저입니다.)")
+        member.name = memberDtoRequest.name
         memberRepository.save(member)
         return "수정이 완료되었습니다."
     }
 
-    fun updateMyName(memberDtoRequest: MemberDtoRequest): String {
-        val member: Member = memberDtoRequest.toEntity()
-        val resultRow = memberRepository.updateUserName(member.name, (member.id).toString().toLong())
+    /**
+     * 정보 수정 (native query)
+     */
+    fun updateUserInfo(updateDto: UpdateDto): String {
+        //val member: Member = memberDtoRequest.toEntity()
+        val resultRow = memberRepository.updateUserInfo(updateDto.name, updateDto.birthDate.toString(), updateDto.gender.name, updateDto.email, (updateDto.id).toString().toLong())
         var resultMsg = "수정이 완료되었습니다."
-        if (resultRow < 0) resultMsg = "수정이 완료되지 못했습니다."
+        if (resultRow < 0) resultMsg = "수정이 완료되지 않았습니다."
         return resultMsg
     }
 }

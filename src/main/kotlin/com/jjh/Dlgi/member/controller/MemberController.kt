@@ -6,6 +6,7 @@ import com.jjh.Dlgi.common.dto.CustomUser
 import com.jjh.Dlgi.member.dto.LoginDto
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.dto.MemberDtoResponse
+import com.jjh.Dlgi.member.dto.UpdateDto
 import com.jjh.Dlgi.member.service.MemberService
 import jakarta.validation.Valid
 import org.springframework.security.core.context.SecurityContextHolder
@@ -62,10 +63,14 @@ class MemberController(
         return BaseResponse(message = resultMsg)
     }
 
-    @PostMapping("/update")
-    fun updateMyName(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
-        val resultMsg: String = memberService.updateMyName(memberDtoRequest)
-        return BaseResponse(message = resultMsg)
+    /**
+     * 쿼리를 이용한 정보 수정
+     */
+    @PutMapping("/update")
+    fun updateMyName(@RequestBody @Valid updateDto: UpdateDto): BaseResponse<MemberDtoResponse> {
+        val resultMsg: String = memberService.updateUserInfo(updateDto)
+        val response = memberService.searchMyInfo(updateDto.id.toString().toLong())
+        return BaseResponse(data = response, message = resultMsg)
     }
 }
 
