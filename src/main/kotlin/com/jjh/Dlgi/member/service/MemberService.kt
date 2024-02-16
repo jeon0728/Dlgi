@@ -36,6 +36,9 @@ class MemberService(
         if (member != null) {
             throw InvalidInputException("loginId", "이미 등록된 ID 입니다.")
         }
+
+        // insert 시에는 save를 사용해야함
+        // 새로운 데이터를 저장 할때는 최초 엔티티를 초기화 해야하기 때문에
         member = memberDtoRequest.toEntity()
         memberRepository.save(member)
 
@@ -65,10 +68,16 @@ class MemberService(
      * 정보 수정
      */
     fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
-        //val member: Member = memberDtoRequest.toEntity()
-        val member: Member = memberRepository.findByIdOrNull(memberDtoRequest.id.toString().toLong()) ?: throw InvalidInputException("id", "회원번호(${memberDtoRequest.id}가 존재하지 않는 유저입니다.)")
-        member.name = memberDtoRequest.name
+        // 아래 코드와 같이 toEntity 메소드를 사용할 경우
+        // fun toEntity() : Member = Member(id, loginId, password, name, birthDate, gender, email)
+        // 엔티티에 새로운 값만 할당해주기만 하기 때문에 변경감지가 일어나지 않는다.
+        val member: Member = memberDtoRequest.toEntity()
         memberRepository.save(member)
+
+        // 아래 코드와 같이 엔티티의 특정 필드에 set 을 해주게 되면 변경감지가 일어난다.
+        // 그래서 따로 save를 해주지 않더라도 update 가 가능해진다.
+        //val member: Member = memberRepository.findByIdOrNull(memberDtoRequest.id.toString().toLong()) ?: throw InvalidInputException("id", "회원번호(${memberDtoRequest.id}가 존재하지 않는 유저입니다.)")
+        //member.name = memberDtoRequest.name
         return "수정이 완료되었습니다."
     }
 
