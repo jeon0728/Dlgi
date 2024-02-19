@@ -36,7 +36,7 @@ class MemberController(
      * 로그인
      */
     @PostMapping("/login")
-    fun login(@RequestBody @Valid loginDto: LoginDto): BaseResponse<TokenInfo> {
+    fun login(@RequestBody @Valid loginDto: LoginDto): BaseResponse<Map<String, String>> {
         val tokenInfo = memberService.login(loginDto)
         return BaseResponse(data = tokenInfo)
     }

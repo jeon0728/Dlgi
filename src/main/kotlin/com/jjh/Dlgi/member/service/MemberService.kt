@@ -9,7 +9,9 @@ import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import com.jjh.Dlgi.member.dto.UpdateDto
 import com.jjh.Dlgi.member.entity.Member
+import com.jjh.Dlgi.member.entity.MemberRefreshToken
 import com.jjh.Dlgi.member.entity.MemberRole
+import com.jjh.Dlgi.member.repository.MemberRefreshTokenRepository
 import com.jjh.Dlgi.member.repository.MemberRepository
 import com.jjh.Dlgi.member.repository.MemberRoleRepository
 import jakarta.transaction.Transactional
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service
 class MemberService(
     private val memberRepository: MemberRepository,
     private val memberRoleRepository: MemberRoleRepository,
+    private val memberRefreshTokenRepository: MemberRefreshTokenRepository,
     private val authenticationManagerBuilder: AuthenticationManagerBuilder,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
@@ -50,10 +53,16 @@ class MemberService(
     /**
      * 로그인
      */
-    fun login(loginDto: LoginDto): TokenInfo {
+    fun login(loginDto: LoginDto): Map<String, String> {
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
         val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
-        return jwtTokenProvider.createToken(authentication)
+        val accessToken = jwtTokenProvider.createToken(authentication).toString()
+        val refreshToken = jwtTokenProvider.createRefreshToken().toString()
+        val member = memberRepository.findByLoginId(loginDto.loginId)?: throw InvalidInputException("id", "로그인 id(${loginDto.loginId}가 존재하지 않는 유저입니다.)")
+        memberRefreshTokenRepository.findByIdOrNull(loginDto.loginId)?.updateRefreshToken(refreshToken)
+            ?: memberRefreshTokenRepository.save(MemberRefreshToken(member!!, refreshToken))
+        val tokenInfoMap = mapOf<String, String>("accessToekn" to accessToken, "refreshToken" to refreshToken)
+        return tokenInfoMap
     }
 
     /**

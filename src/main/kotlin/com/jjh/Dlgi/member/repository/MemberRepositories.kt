@@ -1,10 +1,12 @@
 package com.jjh.Dlgi.member.repository
 
 import com.jjh.Dlgi.member.entity.Member
+import com.jjh.Dlgi.member.entity.MemberRefreshToken
 import com.jjh.Dlgi.member.entity.MemberRole
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import java.util.*
 
 interface MemberRepository: JpaRepository<Member, Long> {
     fun findByLoginId(loginId: String): Member?
@@ -21,3 +23,7 @@ interface MemberRepository: JpaRepository<Member, Long> {
 }
 
 interface MemberRoleRepository: JpaRepository<MemberRole, Long>
+
+interface MemberRefreshTokenRepository : JpaRepository<MemberRefreshToken, String> {
+    //fun findByMemberIdAndReissueCountLessThan(memberId: String, count: Long): MemberRefreshToken?
+}

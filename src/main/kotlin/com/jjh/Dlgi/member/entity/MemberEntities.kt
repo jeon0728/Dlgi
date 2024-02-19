@@ -6,6 +6,7 @@ import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(name = "uk_member_login_id", columnNames = ["loginId"])])
@@ -60,4 +61,29 @@ class MemberRole (
     @JoinColumn(foreignKey = ForeignKey(name = "fk_member_role_member_id"))
     val member: Member
 
-    )
+)
+
+@Entity
+class MemberRefreshToken (
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(foreignKey = ForeignKey(name = "fk_member_refresh_token_member_login_id"), referencedColumnName = "loginId")
+    val member: Member,
+    private var refreshToken: String
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    val Id: Long? = null
+    private var reissueCount = 0
+
+    fun updateRefreshToken(refreshToken: String) {
+        this.refreshToken = refreshToken
+    }
+
+    fun validateRefreshToken(refreshToken: String) = this.refreshToken == refreshToken
+
+    fun increaseReissueCount() {
+        reissueCount++
+    }
+}
+

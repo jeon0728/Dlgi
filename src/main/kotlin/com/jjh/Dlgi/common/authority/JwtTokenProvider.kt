@@ -12,11 +12,21 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 const val EXPIRATION_MILLISECONDS: Long = 1000 * 60 * 60 * 12
 @Component
-class JwtTokenProvider {
+class JwtTokenProvider(
+    @Value("\${jwt.expiration-minutes}")
+    private val expirationMinutes: Long,	// hours -> minutes
+    @Value("\${jwt.refresh-expiration-hours}")
+    private val refreshExpirationHours: Long,	// 추가
+    @Value("\${jwt.issuer}")
+    private val issuer: String
+) {
     @Value("\${jwt.secret}") // yml 파일에 있는 프로퍼티 바인딩
     lateinit var secretKey: String
     // by lazy
@@ -42,7 +52,7 @@ class JwtTokenProvider {
             .joinToString(",", transform = GrantedAuthority::getAuthority)
         val now = Date()
         // 만료시간 지정
-        val accessExpiration = Date(now.time + EXPIRATION_MILLISECONDS)
+        val accessExpiration = Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.HOURS))
 
         // Access Token 생성
         val accessToken = Jwts.builder()
@@ -55,6 +65,21 @@ class JwtTokenProvider {
             .compact()
 
         return TokenInfo("Bearer", accessToken)
+    }
+
+    fun createRefreshToken(): TokenInfo {
+        val now = Date()
+        val refreshExpiration = Date.from(Instant.now().plus(refreshExpirationHours, ChronoUnit.HOURS))
+
+        // refresh Token 생성
+        val refreshToken = Jwts.builder()
+            .setIssuedAt(now) // 발행시간
+            .setIssuer(issuer)
+            .setExpiration(refreshExpiration) // 유효시간
+            .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
+            .compact()
+
+        return TokenInfo("Bearer", refreshToken)
     }
 
     /**
