@@ -11,8 +11,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class MemberDtoRequest (
-    var id: Long?,
-
     @field:NotBlank //빈값 허용하지 않는 어노테이션
     @JsonProperty("loginId") //json 요청 값과 매핑
     private val _loginId: String?,
@@ -64,7 +62,7 @@ data class MemberDtoRequest (
     private fun String.toLocalDate(): LocalDate =
         LocalDate.parse(this, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-    fun toEntity() : Member = Member(id, loginId, password, name, birthDate, gender, email)
+    fun toEntity() : Member = Member(loginId, password, name, birthDate, gender, email)
 
 }
 
@@ -123,7 +121,6 @@ data class UpdateDto(
 }
 
 data class MemberDtoResponse(
-    val id: Long,
     val loginId: String,
     val name: String,
     val birthDate: String,

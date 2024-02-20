@@ -24,7 +24,6 @@ class CustomUserDetailsService(
     private fun createUserDetails(member: Member): UserDetails =
         // CustomUser 클래스를 통해 UserDetails 만들기
         CustomUser(
-            member.id!!,
             member.loginId,
             passwordEncoder.encode(member.password),
             member.memberRole!!.map { SimpleGrantedAuthority("ROLE_${it.role}") }

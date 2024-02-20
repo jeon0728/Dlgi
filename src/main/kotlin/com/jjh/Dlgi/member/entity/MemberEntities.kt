@@ -12,9 +12,6 @@ import java.util.UUID
 @Table(uniqueConstraints = [UniqueConstraint(name = "uk_member_login_id", columnNames = ["loginId"])])
 class Member (
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    var id: Long? = null,
-
     @Column(nullable = false, length = 30, updatable = false)
     val loginId: String,
 
@@ -45,7 +42,7 @@ class Member (
         return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
     }
 
-    fun toDto(): MemberDtoResponse = MemberDtoResponse(id!!, loginId, name, birthDate.formatDate(), gender.desc, email)
+    fun toDto(): MemberDtoResponse = MemberDtoResponse(loginId, name, birthDate.formatDate(), gender.desc, email)
 }
 @Entity
 class MemberRole (
@@ -67,13 +64,12 @@ class MemberRole (
 class MemberRefreshToken (
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(foreignKey = ForeignKey(name = "fk_member_refresh_token_member_login_id"), referencedColumnName = "loginId")
+    @JoinColumn(name = "member_id")
     val member: Member,
     private var refreshToken: String
 ) {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    val Id: Long? = null
+    val member_id: String? = null
     private var reissueCount = 0
 
     fun updateRefreshToken(refreshToken: String) {

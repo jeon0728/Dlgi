@@ -47,7 +47,7 @@ class MemberController(
     @GetMapping("/info")
     fun searchMyInfo(): BaseResponse<MemberDtoResponse> {
         // SecurityContextHolder.getContext() 안에 들어있는 CustomUser 정보에서 UserId 를 꺼내서 조회
-        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).userId
+        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).username
         val response = memberService.searchMyInfo(userId)
         return BaseResponse(data = response)
     }
@@ -55,23 +55,23 @@ class MemberController(
     /**
      * 내 정보 수정
      */
-    @PutMapping("/info")
+    /*@PutMapping("/info")
     fun saveMyInfo(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
-        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).userId
-        memberDtoRequest.id = userId
+        val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).username
+        memberDtoRequest.loginId = userId
         val resultMsg: String = memberService.saveMyInfo(memberDtoRequest)
         return BaseResponse(message = resultMsg)
-    }
+    }*/
 
     /**
      * 쿼리를 이용한 정보 수정
      */
-    @PutMapping("/update")
+    /*@PutMapping("/update")
     fun updateMyName(@RequestBody @Valid updateDto: UpdateDto): BaseResponse<MemberDtoResponse> {
         val resultMsg: String = memberService.updateUserInfo(updateDto)
-        val response = memberService.searchMyInfo(updateDto.id.toString().toLong())
+        val response = memberService.searchMyInfo(updateDto.loginId)
         return BaseResponse(data = response, message = resultMsg)
-    }
+    }*/
 }
 
 

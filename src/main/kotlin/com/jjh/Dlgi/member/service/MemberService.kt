@@ -44,6 +44,7 @@ class MemberService(
         // 새로운 데이터를 저장 할때는 최초 엔티티를 초기화 해야하기 때문에
         member = memberDtoRequest.toEntity()
         memberRepository.save(member)
+        memberRepository.flush()
 
         val memberRole: MemberRole = MemberRole(null, ROLE.JUNHO, member)
         memberRoleRepository.save(memberRole)
@@ -56,20 +57,21 @@ class MemberService(
     fun login(loginDto: LoginDto): Map<String, String> {
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
         val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
-        val accessToken = jwtTokenProvider.createToken(authentication).toString()
-        val refreshToken = jwtTokenProvider.createRefreshToken().toString()
+        val tokenInfo = jwtTokenProvider.createToken(authentication)
         val member = memberRepository.findByLoginId(loginDto.loginId)?: throw InvalidInputException("id", "로그인 id(${loginDto.loginId}가 존재하지 않는 유저입니다.)")
-        memberRefreshTokenRepository.findByIdOrNull(loginDto.loginId)?.updateRefreshToken(refreshToken)
-            ?: memberRefreshTokenRepository.save(MemberRefreshToken(member!!, refreshToken))
-        val tokenInfoMap = mapOf<String, String>("accessToekn" to accessToken, "refreshToken" to refreshToken)
+        val memberRefreshToken = memberRefreshTokenRepository.findByIdOrNull(loginDto.loginId)
+
+        memberRefreshToken?.updateRefreshToken(tokenInfo.refreshToken) ?: memberRefreshTokenRepository.save(MemberRefreshToken(member!!, tokenInfo.refreshToken))
+
+        val tokenInfoMap = mapOf<String, String>("grantType" to tokenInfo.grantType, "accessToekn" to tokenInfo.acceesToken, "refreshToken" to tokenInfo.refreshToken)
         return tokenInfoMap
     }
 
     /**
      * 정보 조회
      */
-    fun searchMyInfo(id: Long): MemberDtoResponse {
-        val member: Member = memberRepository.findByIdOrNull(id) ?: throw InvalidInputException("id", "회원번호(${id}가 존재하지 않는 유저입니다.)")
+    fun searchMyInfo(loginId: String): MemberDtoResponse {
+        val member: Member = memberRepository.findByLoginId(loginId) ?: throw InvalidInputException("id", "회원번호(${loginId}가 존재하지 않는 유저입니다.)")
         return member.toDto()
     }
 

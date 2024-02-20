@@ -58,16 +58,17 @@ class JwtTokenProvider(
         val accessToken = Jwts.builder()
             .setSubject(authentication.name) // 제목
             .claim("auth", authorities) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
-            .claim("userId", (authentication.principal as CustomUser).userId) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
+            .claim("userName", (authentication.principal as CustomUser).username) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
             .setIssuedAt(now) // 발행시간
             .setExpiration(accessExpiration) // 유효시간
             .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
             .compact()
+        val refreshToken = createRefreshToken()
 
-        return TokenInfo("Bearer", accessToken)
+        return TokenInfo("Bearer", accessToken, refreshToken)
     }
 
-    fun createRefreshToken(): TokenInfo {
+    fun createRefreshToken(): String {
         val now = Date()
         val refreshExpiration = Date.from(Instant.now().plus(refreshExpirationHours, ChronoUnit.HOURS))
 
@@ -79,7 +80,7 @@ class JwtTokenProvider(
             .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
             .compact()
 
-        return TokenInfo("Bearer", refreshToken)
+        return refreshToken
     }
 
     /**
@@ -100,7 +101,7 @@ class JwtTokenProvider(
 
         // claims 안에 들어있는 정보(userId, auth)에서 auth를 이용하여 추출한 권한 정보를 CustomUser 객체로 만들어
         // UserDetails 타입으로 선언한 principal이라는 변수 안에 저장
-        val principal: UserDetails = CustomUser(userId.toString().toLong(), claims.subject, "", authorities)
+        val principal: UserDetails = CustomUser(claims.subject, "", authorities)
         // 사용자의 자격증명을 기반으로 인증객체(UsernamePasswordAuthenticationToken) 생성 후 반환
         return UsernamePasswordAuthenticationToken(principal, "", authorities)
     }
