@@ -26,19 +26,26 @@ class JwtAuthenticationFilter(
                 SecurityContextHolder.getContext().authentication = authentication
             }
         } catch (e: ExpiredJwtException) {
-            reissueAccessToken(request as HttpServletRequest, response as HttpServletResponse, e)
+            try {
+                reissueAccessToken(request as HttpServletRequest, response as HttpServletResponse, e)
+            } catch (e: Exception) {
+                val errMsg = e.message
+                setResponse(response as HttpServletResponse, e.message!!);
+            }
         } catch (e: Exception) {
             request?.setAttribute("exception", e)
         }
 
         // 체인에 등록된 다음 필터 적용
         // 다음 필터가 없으면 종료
-        try {
+        /*try {
             chain?.doFilter(request, response)
         } catch (e: JwtException) {
             val errMsg = e.message
             setResponse(response as HttpServletResponse, e.message!!);
-        }
+        }*/
+
+        chain?.doFilter(request, response)
 
 
     }
@@ -70,9 +77,10 @@ class JwtAuthenticationFilter(
         }
     }
 
-    private fun setResponse(response: HttpServletResponse, msg: String) {
+    private fun setResponse(response: HttpServletResponse, msg: String): HttpServletResponse {
         response.contentType = "application/json;charset=UTF-8"
         response.status = 9999
         response.writer.print(msg)
+        return response
     }
 }
