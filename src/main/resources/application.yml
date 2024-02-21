@@ -32,6 +32,6 @@ logging:
         type.descriptor.sql: trace
 jwt:
   secret: DadFufN4Oui8Bfv3ScFj6R9fyJ9hD45E6AGFsXgFsRhT4YSdSb
-  expiration-minutes: 30    # 3시간 -> 30분
-  refresh-expiration-hours: 24    # 리프레시 토큰 유효시간은 24시간
+  expiration-minutes: 1    # 3시간 -> 30분
+  refresh-expiration-hours: 1    # 리프레시 토큰 유효시간은 24시간
   issuer: junojuno728

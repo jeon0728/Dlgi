@@ -25,5 +25,5 @@ interface MemberRepository: JpaRepository<Member, Long> {
 interface MemberRoleRepository: JpaRepository<MemberRole, Long>
 
 interface MemberRefreshTokenRepository : JpaRepository<MemberRefreshToken, String> {
-    //fun findByMemberIdAndReissueCountLessThan(memberId: String, count: Long): MemberRefreshToken?
+    fun findByMemberIdAndReissueCountLessThan(memberId: String, count: Long): MemberRefreshToken?
 }

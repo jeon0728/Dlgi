@@ -1,14 +1,21 @@
 package com.jjh.Dlgi.common.authority
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.jjh.Dlgi.common.dto.CustomUser
+import com.jjh.Dlgi.member.repository.MemberRefreshTokenRepository
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
@@ -25,7 +32,9 @@ class JwtTokenProvider(
     @Value("\${jwt.refresh-expiration-hours}")
     private val refreshExpirationHours: Long,	// 추가
     @Value("\${jwt.issuer}")
-    private val issuer: String
+    private val issuer: String,
+    private val memberRefreshTokenRepository: MemberRefreshTokenRepository,
+    private val authenticationManagerBuilder: AuthenticationManagerBuilder,
 ) {
     @Value("\${jwt.secret}") // yml 파일에 있는 프로퍼티 바인딩
     lateinit var secretKey: String
@@ -38,6 +47,9 @@ class JwtTokenProvider(
     private val key by lazy {
         Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey))
     }
+
+    private val reissueLimit = refreshExpirationHours * 60 / expirationMinutes	// 재발급 한도
+    private val objectMapper = ObjectMapper()	// JWT를 역직렬화하기 위한 ObjectMapper
 
     /**
      * token 생성
@@ -52,7 +64,7 @@ class JwtTokenProvider(
             .joinToString(",", transform = GrantedAuthority::getAuthority)
         val now = Date()
         // 만료시간 지정
-        val accessExpiration = Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.HOURS))
+        val accessExpiration = Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES))
 
         // Access Token 생성
         val accessToken = Jwts.builder()
@@ -63,6 +75,8 @@ class JwtTokenProvider(
             .setExpiration(accessExpiration) // 유효시간
             .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
             .compact()
+
+        // Refresh Token 생성
         val refreshToken = createRefreshToken()
 
         return TokenInfo("Bearer", accessToken, refreshToken)
@@ -83,13 +97,38 @@ class JwtTokenProvider(
         return refreshToken
     }
 
+    @Transactional
+    fun recreateAccessToken(oldAccessToken: String): String {
+        val subject = decodeJwtPayloadSubject(oldAccessToken)
+        val auth = decodeJwtPayloadAuth(oldAccessToken)
+        //val pw = decodeJwtPayloadPw(oldAccessToken)
+        memberRefreshTokenRepository.findByMemberIdAndReissueCountLessThan(subject, reissueLimit)
+            ?.increaseReissueCount() ?: throw ExpiredJwtException(null, null, "Refresh token is expired.")
+
+        val now = Date()
+        // 만료시간 지정
+        val accessExpiration = Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES))
+
+        // Access Token 생성
+        val accessToken = Jwts.builder()
+            .setSubject(subject) // 제목
+            .claim("auth", auth) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
+            .claim("userName", subject) // 클레임 정보(주로 인증된 사용자와 관련된 정보를 추가)
+            .setIssuedAt(now) // 발행시간
+            .setExpiration(accessExpiration) // 유효시간
+            .signWith(key, SignatureAlgorithm.HS256) // 개인키를 가지고 HS512 암호화 알고리즘으로 header와 payload로 Signature를 생성.
+            .compact()
+
+        return accessToken
+    }
+
     /**
      * token 정보 추출
      */
     fun getAuthentication(token: String): Authentication {
         val claims: Claims = getClaims(token)
         val auth = claims["auth"] ?: throw RuntimeException("잘못된 토큰 입니다.")
-        val userId = claims["userId"] ?: throw RuntimeException("잘못된 토큰 입니다.")
+        //val userId = claims["userId"] ?: throw RuntimeException("잘못된 토큰 입니다.")
 
         // 권한 정보 추출
         // 순회가능한 Collection 타입으로 authorities 변수 선언
@@ -118,7 +157,9 @@ class JwtTokenProvider(
             when (e) {
                 is SecurityException -> {} // Invalid JWT Token
                 is MalformedJwtException -> {} // Invalid JWT Token
-                is ExpiredJwtException -> {} // Expired JWT Token
+                is ExpiredJwtException -> {
+                    throw ExpiredJwtException(null, null, "Refresh token is expired.")
+                } // Expired JWT Token
                 is IllegalArgumentException -> {} // Unsupported JWT Token
                 is UnsupportedJwtException -> {} // JWT claims string is empty
                 else -> {}  // else
@@ -126,6 +167,13 @@ class JwtTokenProvider(
             println(e.message)
         }
         return false
+    }
+
+    @Transactional
+    fun validateRefreshToken(refreshToken: String, oldAccessToken: String) {
+        val memberId = decodeJwtPayloadSubject(oldAccessToken)
+        memberRefreshTokenRepository.findByMemberIdAndReissueCountLessThan(memberId, reissueLimit)
+            ?.takeIf { it.validateRefreshToken(refreshToken) } ?: throw ExpiredJwtException(null, null, "Refresh token is expired.")
     }
 
     private fun getClaims(token: String): Claims {
@@ -136,4 +184,15 @@ class JwtTokenProvider(
         return parseClaimsJws
     }
 
+    private fun decodeJwtPayloadSubject(oldAccessToken: String) =
+        objectMapper.readValue(
+            Base64.getUrlDecoder().decode(oldAccessToken.split('.')[1]).decodeToString(),
+            Map::class.java
+        )["sub"].toString()
+
+    private fun decodeJwtPayloadAuth(oldAccessToken: String) =
+        objectMapper.readValue(
+            Base64.getUrlDecoder().decode(oldAccessToken.split('.')[1]).decodeToString(),
+            Map::class.java
+        )["auth"].toString()
 }

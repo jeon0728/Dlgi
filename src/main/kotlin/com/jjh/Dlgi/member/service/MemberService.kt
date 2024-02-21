@@ -57,10 +57,12 @@ class MemberService(
     fun login(loginDto: LoginDto): Map<String, String> {
         val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.loginId, loginDto.password)
         val authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
+        // access/refresh token 생성
         val tokenInfo = jwtTokenProvider.createToken(authentication)
         val member = memberRepository.findByLoginId(loginDto.loginId)?: throw InvalidInputException("id", "로그인 id(${loginDto.loginId}가 존재하지 않는 유저입니다.)")
         val memberRefreshToken = memberRefreshTokenRepository.findByIdOrNull(loginDto.loginId)
 
+        // refresh token 이 null 이  아니면 갱신, null 이면 새로 발급한 refresh token db에 저장
         memberRefreshToken?.updateRefreshToken(tokenInfo.refreshToken) ?: memberRefreshTokenRepository.save(MemberRefreshToken(member!!, tokenInfo.refreshToken))
 
         val tokenInfoMap = mapOf<String, String>("grantType" to tokenInfo.grantType, "accessToekn" to tokenInfo.acceesToken, "refreshToken" to tokenInfo.refreshToken)

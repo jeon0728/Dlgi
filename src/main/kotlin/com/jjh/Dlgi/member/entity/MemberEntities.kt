@@ -69,7 +69,7 @@ class MemberRefreshToken (
     private var refreshToken: String
 ) {
     @Id
-    val member_id: String? = null
+    val memberId: String? = null
     private var reissueCount = 0
 
     fun updateRefreshToken(refreshToken: String) {
