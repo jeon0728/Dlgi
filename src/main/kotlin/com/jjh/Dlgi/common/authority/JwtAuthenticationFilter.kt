@@ -26,12 +26,7 @@ class JwtAuthenticationFilter(
                 SecurityContextHolder.getContext().authentication = authentication
             }
         } catch (e: ExpiredJwtException) {
-            try {
-                reissueAccessToken(request as HttpServletRequest, response as HttpServletResponse, e)
-            } catch (e: Exception) {
-                val errMsg = e.message
-                setResponse(response as HttpServletResponse, e.message!!);
-            }
+            reissueAccessToken(request as HttpServletRequest, response as HttpServletResponse, e)
         } catch (e: Exception) {
             request?.setAttribute("exception", e)
         }
@@ -74,13 +69,14 @@ class JwtAuthenticationFilter(
             response.setHeader("New-Access-Token", newAcceesToken)
         } catch (e: Exception) {
             request.setAttribute("exception", e)
+            //setResponse(response, e.message!!);
         }
     }
 
-    private fun setResponse(response: HttpServletResponse, msg: String): HttpServletResponse {
-        response.contentType = "application/json;charset=UTF-8"
-        response.status = 9999
-        response.writer.print(msg)
-        return response
-    }
+//    private fun setResponse(response: HttpServletResponse, msg: String): HttpServletResponse {
+//        response.contentType = "application/json;charset=UTF-8"
+//        response.status = 9999
+//        response.writer.print(msg)
+//        return response
+//    }
 }

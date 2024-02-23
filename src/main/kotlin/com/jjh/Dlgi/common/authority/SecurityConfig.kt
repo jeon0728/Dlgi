@@ -7,13 +7,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration // Bean 등록 및 싱글톤 유지하게 해주는 annotation @Bean 과 세트
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val entryPoint: AuthenticationEntryPoint
 ) {
     @Bean // @Configuration 과 세트
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -34,6 +36,7 @@ class SecurityConfig(
             ) // B filter 실행 전에 A filter 실행
               // JwtAuthenticationFilter 내부 코드를 보면 성공한 경우 Authentication 객체를 생성하여 SecurityContextHolder에 저장한다.
               // 따라서 이후 실행되는 UsernamePasswordAuthenticationFilter 는 이미 인증이 완료된 상태이므로 실행되지 않는게 아니라 통과하는것이다.
+            .exceptionHandling { it.authenticationEntryPoint(entryPoint) }
         return http.build()
     }
     @Bean
