@@ -16,3 +16,13 @@ Spring security / Jwt flow
 
 7. jwtTokenProvider : createToken(authentication)
 8. 리턴값 반환
+
+
+Spring Security / Jwt Error Handling
+
+1. Controller 이전 단계에서 에러 발생 (잘못된 토큰, 유효하지 않은 토큰, 토큰 만료 등등)
+2. SecurityConfig > exceptionHandling { it.authenticationEntryPoint(entryPoint) } 에 등록된 코드에 따라서
+3. JwtAuthenticationEntryPoint 에 재정의된 commence 메소드 호출
+4. commence 메소드 안에 선언된 resolveException 호출
+5. CustomExceptionHandler 에 있는 @ExceptionHandler 을 찾아 에러처리
+   

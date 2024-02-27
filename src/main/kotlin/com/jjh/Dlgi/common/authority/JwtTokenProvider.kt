@@ -6,6 +6,7 @@ import com.jjh.Dlgi.member.repository.MemberRefreshTokenRepository
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.transaction.Transactional
@@ -155,10 +156,11 @@ class JwtTokenProvider(
             return true
         } catch (e: Exception) {
             when (e) {
-                is SecurityException -> {} // Invalid JWT Token
+                is SecurityException -> {}
+                is SignatureException -> {}
                 is MalformedJwtException -> {} // Invalid JWT Token
                 is ExpiredJwtException -> {
-                    throw ExpiredJwtException(null, null, "Refresh token is expired.")
+                    throw ExpiredJwtException(null, null, "access token is expired.")
                 } // Expired JWT Token
                 is IllegalArgumentException -> {} // Unsupported JWT Token
                 is UnsupportedJwtException -> {} // JWT claims string is empty
@@ -167,6 +169,12 @@ class JwtTokenProvider(
             println(e.message)
         }
         return false
+
+//        if (getClaims(token) != null) {
+//            return true
+//        } else {
+//            return false
+//        }
     }
 
     @Transactional

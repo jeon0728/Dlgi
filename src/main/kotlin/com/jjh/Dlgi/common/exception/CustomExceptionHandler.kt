@@ -2,6 +2,7 @@ package com.jjh.Dlgi.common.exception
 
 import com.jjh.Dlgi.common.dto.BaseResponse
 import com.jjh.Dlgi.common.status.ResultCode
+import io.jsonwebtoken.security.SignatureException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException

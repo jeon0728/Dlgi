@@ -11,12 +11,17 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.util.StringUtils
 import org.springframework.web.filter.GenericFilterBean
+import org.springframework.web.filter.OncePerRequestFilter
 
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider
-) : GenericFilterBean() { // GenericFilterBean 대상을 필터로 등록해주는 interface
+) : OncePerRequestFilter() { // GenericFilterBean 대상을 필터로 등록해주는 interface
     // doFilter override
-    override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
         try {
             val token = resolveToken(request as HttpServletRequest, "Authorization")
             if (token != null && jwtTokenProvider.validateToken(token)) {
@@ -40,7 +45,7 @@ class JwtAuthenticationFilter(
             setResponse(response as HttpServletResponse, e.message!!);
         }*/
 
-        chain?.doFilter(request, response)
+        filterChain?.doFilter(request, response)
 
 
     }
