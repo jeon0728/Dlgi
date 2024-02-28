@@ -80,18 +80,24 @@ class MemberService(
     /**
      * 정보 수정
      */
-    fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
-        // 아래 코드와 같이 toEntity 메소드를 사용할 경우
-        // fun toEntity() : Member = Member(id, loginId, password, name, birthDate, gender, email)
-        // 엔티티에 새로운 값만 할당해주기만 하기 때문에 변경감지가 일어나지 않는다.
-        val member: Member = memberDtoRequest.toEntity()
-        memberRepository.save(member)
+    fun saveMyInfo(memberDtoRequest: MemberDtoRequest, userId: String): String {
+        var returnMsg = "로그인 ID가 잘못되었습니다."
+        if (memberDtoRequest.loginId == userId) {
+            // 아래 코드와 같이 toEntity 메소드를 사용할 경우
+            // fun toEntity() : Member = Member(id, loginId, password, name, birthDate, gender, email)
+            // 엔티티에 새로운 값만 할당해주기만 하기 때문에 변경감지가 일어나지 않는다.
+            val member: Member = memberDtoRequest.toEntity()
+            memberRepository.save(member)
 
-        // 아래 코드와 같이 엔티티의 특정 필드에 set 을 해주게 되면 변경감지가 일어난다.
-        // 그래서 따로 save를 해주지 않더라도 update 가 가능해진다.
-        //val member: Member = memberRepository.findByIdOrNull(memberDtoRequest.id.toString().toLong()) ?: throw InvalidInputException("id", "회원번호(${memberDtoRequest.id}가 존재하지 않는 유저입니다.)")
-        //member.name = memberDtoRequest.name
-        return "수정이 완료되었습니다."
+            // 아래 코드와 같이 엔티티의 특정 필드에 set 을 해주게 되면 변경감지가 일어난다.
+            // 그래서 따로 save를 해주지 않더라도 update 가 가능해진다.
+            //val member: Member = memberRepository.findByIdOrNull(memberDtoRequest.id.toString().toLong()) ?: throw InvalidInputException("id", "회원번호(${memberDtoRequest.id}가 존재하지 않는 유저입니다.)")
+            //member.name = memberDtoRequest.name
+
+            returnMsg = "수정이 완료되었습니다."
+        }
+
+        return returnMsg
     }
 
     /**

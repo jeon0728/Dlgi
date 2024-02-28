@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 data class MemberDtoRequest (
     @field:NotBlank //빈값 허용하지 않는 어노테이션
     @JsonProperty("loginId") //json 요청 값과 매핑
-    private val _loginId: String?,
+    private var _loginId: String?,
 
     @field:NotBlank
     @JsonProperty("password")

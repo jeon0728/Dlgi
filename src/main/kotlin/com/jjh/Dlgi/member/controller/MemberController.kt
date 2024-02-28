@@ -55,13 +55,13 @@ class MemberController(
     /**
      * 내 정보 수정
      */
-    /*@PutMapping("/info")
+    @PutMapping("/info")
     fun saveMyInfo(@RequestBody @Valid memberDtoRequest: MemberDtoRequest): BaseResponse<Unit> {
         val userId = (SecurityContextHolder.getContext().authentication.principal as CustomUser).username
-        memberDtoRequest.loginId = userId
-        val resultMsg: String = memberService.saveMyInfo(memberDtoRequest)
+        //memberDtoRequest.loginId = userId
+        val resultMsg: String = memberService.saveMyInfo(memberDtoRequest, userId)
         return BaseResponse(message = resultMsg)
-    }*/
+    }
 
     /**
      * 쿼리를 이용한 정보 수정
