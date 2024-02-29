@@ -26,6 +26,18 @@ data class DetailSearchDtoRequest(
     val seq: Long,
 )
 
+data class BoardUpdateDtoRequest(
+    val seq: Long,
+
+    @field:NotBlank //빈값 허용하지 않는 어노테이션
+    @JsonProperty("title") //json 요청 값과 매핑
+    val title: String,
+
+    @field:NotBlank //빈값 허용하지 않는 어노테이션
+    @JsonProperty("content") //json 요청 값과 매핑
+    val content: String,
+)
+
 data class BoardDtoResponse(
     val title: String,
     val content: String,

@@ -31,7 +31,7 @@ class Board (
 
     @Column
     @Temporal(TemporalType.DATE) //날짜만 입력가능하게 하는 어노테이션
-    val modDt: LocalDate?,
+    var modDt: LocalDate?,
 ) {
     private fun LocalDate.formatDate(): String {
         return this.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
