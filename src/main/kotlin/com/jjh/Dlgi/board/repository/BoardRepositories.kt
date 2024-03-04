@@ -6,5 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface BoardRepository : JpaRepository<Board, Long> {
 
+    override fun findAll(): List<Board>
+
     fun findBySeq(seq: Long): Board?
 }

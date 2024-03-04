@@ -24,6 +24,16 @@ class BoardController (
 ) {
 
     /**
+     * 게시판 조회
+     */
+    @GetMapping("/list")
+    fun list(): BaseResponse<List<BoardDtoResponse>> {
+        val rstMap = boardService.listBoard()
+        val listInfo = rstMap.get("list") as List<BoardDtoResponse>
+        return BaseResponse(data = listInfo, message = rstMap.get("rstMsg") as String)
+    }
+
+    /**
      * 게시판 상세조회
      */
     @PostMapping("/detail")
