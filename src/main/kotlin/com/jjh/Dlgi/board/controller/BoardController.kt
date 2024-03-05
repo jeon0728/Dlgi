@@ -1,9 +1,6 @@
 package com.jjh.Dlgi.board.controller
 
-import com.jjh.Dlgi.board.dto.BoardDtoRequest
-import com.jjh.Dlgi.board.dto.BoardDtoResponse
-import com.jjh.Dlgi.board.dto.BoardUpdateDtoRequest
-import com.jjh.Dlgi.board.dto.DetailSearchDtoRequest
+import com.jjh.Dlgi.board.dto.*
 import com.jjh.Dlgi.board.entity.Board
 import com.jjh.Dlgi.board.service.BoardService
 import com.jjh.Dlgi.common.dto.BaseResponse
@@ -11,6 +8,7 @@ import com.jjh.Dlgi.common.status.ResultCode
 import com.jjh.Dlgi.member.dto.MemberDtoRequest
 import com.jjh.Dlgi.member.dto.MemberDtoResponse
 import jakarta.validation.Valid
+import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,11 +24,14 @@ class BoardController (
     /**
      * 게시판 조회
      */
-    @GetMapping("/list")
-    fun list(): BaseResponse<List<BoardDtoResponse>> {
-        val rstMap = boardService.listBoard()
+    @PostMapping("/list")
+    fun list(@RequestBody @Valid boardSearchDtoRequest: BoardSearchDtoRequest): BoardResponse {
+        val rstMap = boardService.listBoard(boardSearchDtoRequest)
+        val totalCount = rstMap.get("totalCount") as Long
         val listInfo = rstMap.get("list") as List<BoardDtoResponse>
-        return BaseResponse(data = listInfo, message = rstMap.get("rstMsg") as String)
+        val pageInfo = rstMap.get("pageInfo") as Pageable
+        val message = rstMap.get("rstMsg") as String
+        return BoardResponse(totalCount = totalCount, data = listInfo, pageInfo = pageInfo, message = message)
     }
 
     /**

@@ -26,7 +26,7 @@ class SecurityConfig(
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             } // Jwt 사용하기 때문에 세션 사용하지 않기
             .authorizeHttpRequests {
-                it.requestMatchers("/api/member/signup", "/api/member/login").anonymous()
+                it.requestMatchers("/api/member/signup", "/api/member/login", "/api/board/**").anonymous()
                     .requestMatchers("/api/member/**").hasRole("JUNHO")
                     .anyRequest().permitAll()
             } // 회원가입 url 은 모든 사용자 접근 가능하도록

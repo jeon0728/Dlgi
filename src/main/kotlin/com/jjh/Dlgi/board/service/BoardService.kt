@@ -1,21 +1,15 @@
 package com.jjh.Dlgi.board.service
 
-import com.jjh.Dlgi.board.dto.BoardDtoRequest
-import com.jjh.Dlgi.board.dto.BoardDtoResponse
-import com.jjh.Dlgi.board.dto.BoardUpdateDtoRequest
-import com.jjh.Dlgi.board.dto.DetailSearchDtoRequest
+import com.jjh.Dlgi.board.dto.*
 import com.jjh.Dlgi.board.entity.Board
 import com.jjh.Dlgi.board.repository.BoardRepository
 import com.jjh.Dlgi.common.dto.CustomUser
-import com.jjh.Dlgi.common.exception.InvalidInputException
-import com.jjh.Dlgi.member.dto.MemberDtoResponse
-import com.jjh.Dlgi.member.entity.Member
-import com.jjh.Dlgi.member.repository.MemberRepository
 import jakarta.transaction.Transactional
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 
 @Transactional
 @Service
@@ -29,10 +23,11 @@ class BoardService (
      * 게시판 전체 조회
      */
 
-    fun listBoard(): Map<String, Any?> {
+    fun listBoard(boardSearchDtoRequest: BoardSearchDtoRequest): Map<String, Any?> {
         var rstMsg = "조회가 완료되었습니다."
-        val list: List<Board> = boardRepository.findAll()
-        val boardInfoList: MutableList<BoardDtoResponse> = MutableList(list.size)
+        val list = boardRepository.findAll(PageRequest.of(boardSearchDtoRequest.pageNum, boardSearchDtoRequest.pageSize, Sort.by("seq").descending()))
+        val pageInfo = list.pageable
+        val boardInfoList = mutableListOf<BoardDtoResponse>()
         if (list == null) {
             rstMsg = "조회가 실패하였습니다."
         } else {
@@ -41,8 +36,7 @@ class BoardService (
             }
         }
 
-
-        rstMap = mapOf("list" to boardInfoList, "rstMsg" to rstMsg)
+        rstMap = mapOf("list" to boardInfoList, "rstMsg" to rstMsg, "totalCount" to list.totalElements, "pageInfo" to pageInfo)
 
         return rstMap
     }

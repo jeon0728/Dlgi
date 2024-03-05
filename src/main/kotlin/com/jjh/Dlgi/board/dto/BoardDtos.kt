@@ -22,6 +22,11 @@ data class BoardDtoRequest(
     fun toEntity() : Board = Board(seq, title, content, null, null, null, null)
 }
 
+data class BoardSearchDtoRequest(
+    val pageNum: Int,
+    val pageSize: Int,
+)
+
 data class DetailSearchDtoRequest(
     val seq: Long,
 )
