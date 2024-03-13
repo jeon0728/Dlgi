@@ -1,4 +1,7 @@
-kotlin + spring boot + spring security + JWT
+2024년 두번째 코틀린 프로젝트
+
+1. kotlin + spring boot + spring security + JWT
+2. BOARD CRUD API
 
 Spring security / Jwt flow
 
